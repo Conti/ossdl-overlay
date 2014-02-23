@@ -46,7 +46,14 @@ src_unpack() {
 	# run gclient synchronization
 	einfo "gclient sync -->"
 	einfo "     repository: ${ESVN_REPO_URI}"
-	${EGCLIENT} sync --force || die "gclient: unable to sync"
+	${EGCLIENT} sync --nohooks|| die "gclient: unable to sync"
+	
+	# work around for missing version.py until next version
+	cd src/third_party/chromium/src/chrome/tools/build/
+	wget http://src.chromium.org/svn/trunk/src/build/util/version.py
+	cd "${WORKDIR}"
+	
+	${EGCLIENT} runhooks || die "gclient: unable to runhooks"
 
 	# move the sources to the working dir
 	rsync -rlpgo --exclude=".svn" --exclude=".glient*" src/ "${S}"
@@ -72,3 +79,4 @@ src_install() {
 	mv -f ${OUTDIR}/js_minify ${OUTDIR}/pagespeed_js_minify
 	dobin ${OUTDIR}/pagespeed_js_minify
 }
+
